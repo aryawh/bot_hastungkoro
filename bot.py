@@ -22,6 +22,13 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# Check if BOT_TOKEN is set
+if not BOT_TOKEN:
+    logger.error('BOT_TOKEN is not set. Please set it in the .env file.')
+    raise ValueError('BOT_TOKEN is not set. Please set it in the .env file.')
+
+logger.info('BOT_TOKEN is set')
+
 # Dictionary to store weights and logs for each user
 user_data = {}
 total_eggs = 0  # Variable to store the total eggs
@@ -150,7 +157,9 @@ def main() -> None:
     # Check if BOT_TOKEN is set
     if not BOT_TOKEN:
         logger.error('BOT_TOKEN is not set. Please set it in the .env file.')
-        return
+        raise ValueError('BOT_TOKEN is not set. Please set it in the .env file.')
+
+    logger.info('Starting bot...')
 
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()
@@ -165,7 +174,8 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, count_eggs))
 
     # Start the Bot
+    logger.info('Bot is polling...')
     application.run_polling()
 
-if __name__ == '__name__':
+if __name__ == '__main__':
     main()
