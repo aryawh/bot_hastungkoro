@@ -2,6 +2,7 @@ import logging
 import os
 import re
 from datetime import datetime
+import pytz
 import pandas as pd
 from dotenv import load_dotenv
 from telegram import Update
@@ -24,23 +25,39 @@ logger = logging.getLogger(__name__)
 # Dictionary to store weights and logs for each user
 user_data = {}
 total_eggs = 0  # Variable to store the total eggs
+last_reset_date = datetime.now(pytz.timezone('Asia/Jakarta')).strftime('%Y-%m')  # Track the last reset date (year and month)
+
+# Timezone for Jakarta
+jakarta_tz = pytz.timezone('Asia/Jakarta')
 
 # Regex pattern to extract egg count
 egg_pattern = re.compile(r'(\d+)\s*butir\s*telur\s*ikan', re.IGNORECASE)
 
+def reset_data_if_needed():
+    global user_data, total_eggs, last_reset_date
+    current_month = datetime.now(jakarta_tz).strftime('%Y-%m')
+    if current_month != last_reset_date:
+        user_data = {}
+        total_eggs = 0
+        last_reset_date = current_month
+        logger.info("Data reset for the new month")
+
 # Define a few command handlers. These usually take the two arguments update and context.
 async def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
+    reset_data_if_needed()
     await update.message.reply_text(
         'Hai! Kirim pesan dengan jumlah telur ikan dalam butir, ex: "Saya panen 10000 butir telur ikan" dan saya akan mencatatnya. Gunakan /report untuk melihat laporan.'
     )
 
 async def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
+    reset_data_if_needed()
     await update.message.reply_text('Help! Perintah yang tersedia: /start, /help, /report, /export')
 
 async def count_eggs(update: Update, context: CallbackContext) -> None:
     """Extract egg count from the user's message and update the total."""
+    reset_data_if_needed()
     global total_eggs
 
     user_id = update.message.from_user.id
@@ -50,7 +67,7 @@ async def count_eggs(update: Update, context: CallbackContext) -> None:
     match = egg_pattern.search(message_text)
     if match:
         eggs = int(match.group(1))
-        date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        date = datetime.now(jakarta_tz).strftime('%Y-%m-%d %H:%M:%S')
 
         # Store the egg count and log in the dictionary
         if user_id not in user_data:
@@ -65,7 +82,8 @@ async def count_eggs(update: Update, context: CallbackContext) -> None:
 
 async def report(update: Update, context: CallbackContext) -> None:
     """Send a report of today's egg counts for all users."""
-    today = datetime.now().strftime('%Y-%m-%d')
+    reset_data_if_needed()
+    today = datetime.now(jakarta_tz).strftime('%Y-%m-%d')
     report_message = "Laporan jumlah telur ikan hari ini:\n"
     total_eggs_today = 0
     entry_number = 1
@@ -83,6 +101,7 @@ async def report(update: Update, context: CallbackContext) -> None:
 
 async def export(update: Update, context: CallbackContext) -> None:
     """Export the report of egg counts to an Excel file, separated by date in different sheets."""
+    reset_data_if_needed()
     # Dictionary to hold data per date
     datewise_data = {}
     total_eggs = 0
@@ -148,5 +167,5 @@ def main() -> None:
     # Start the Bot
     application.run_polling()
 
-if __name__ == '__main__':
+if __name__ == '__name__':
     main()
