@@ -60,7 +60,19 @@ async def start(update: Update, context: CallbackContext) -> None:
 async def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
     reset_data_if_needed()
-    await update.message.reply_text('Help! Perintah yang tersedia: /start, /help, /report, /export')
+    
+    help_text = (
+        "Perintah yang tersedia:\n"
+        "1. /start - Memulai bot dan mendapatkan informasi tentang cara penggunaan.\n"
+        "2. /help - Menampilkan daftar perintah yang tersedia dan penjelasannya.\n"
+        "3. /report - Menampilkan laporan jumlah telur ikan yang dilaporkan hari ini oleh semua pengguna.\n"
+        "Cara menggunakan bot:\n"
+        "1. Kirim pesan dengan jumlah telur ikan dalam butir, contoh: \"Saya panen 10000 butir telur ikan\".\n"
+        "2. Gunakan perintah /report untuk melihat laporan jumlah telur ikan hari ini.\n"
+        "3. Untuk bantuan lebih lanjut, gunakan perintah /help."
+    )
+    
+    await update.message.reply_text(help_text)
 
 async def count_eggs(update: Update, context: CallbackContext) -> None:
     """Extract egg count from the user's message and update the total."""
